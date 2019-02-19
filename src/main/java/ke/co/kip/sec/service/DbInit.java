@@ -39,7 +39,7 @@ public class DbInit implements ApplicationListener<ContextRefreshedEvent> {
   public User createUserIfNotFound(String username) {
       User user = userRepo.findByUsername(username);
       if(user==null){
-          user = User.builder().password("123")
+          user = User.builder()
                   .username(username)
                   .email("ktonym@gmail.com")
                   .firstName("admin")
@@ -49,6 +49,7 @@ public class DbInit implements ApplicationListener<ContextRefreshedEvent> {
                   .accountNonLocked(true)
                   .credentialsNonExpired(true)
                   .phoneNumber("0725766814").build();
+          user.setPassword("123");
           userRepo.save(user);
       }
       return user;
