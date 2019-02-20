@@ -9,12 +9,19 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Arrays;
 
 @Configuration
@@ -23,6 +30,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserDetailsServiceImp userDetailService;
+
+    @Autowired
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -38,7 +48,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
               //Filter for the api/login requests
               .addFilterBefore(new LoginFilter("/login",authenticationManager()), UsernamePasswordAuthenticationFilter.class)
               //Filter for other requests to check JWT in header
-              .addFilterBefore(new AuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
+              .addFilterBefore(new AuthenticationFilter(),UsernamePasswordAuthenticationFilter.class)
+              .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
     }
 
 
@@ -54,5 +65,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         source.registerCorsConfiguration("/**",config);
         return source;
+    }
+
+    @Component
+    public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+        @Override
+        public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
+            // This is invoked when user tries to access a secured REST resource without supplying any credentials
+            // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+        }
     }
 }

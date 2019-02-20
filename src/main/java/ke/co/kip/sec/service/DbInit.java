@@ -68,14 +68,14 @@ public class DbInit implements ApplicationListener<ContextRefreshedEvent> {
   @Transactional
   public void addUserIfNotInRole(User user,Authority authority){
 
-    List<Authority> userAuths = authorityRepo.findByUsersIn(user);
+      List<Authority> userAuths = authorityRepo.findByUsersIn(user);
 
-    if(userAuths.contains(authority)){
-    }else {
-      userAuths.add(authority);
-      user.setAuthorities(userAuths);
-      userRepo.save(user);
-    }
+      if(userAuths.contains(authority)){
+      }else {
+          userAuths.add(authority);
+          user.setAuthorities(userAuths);
+          userRepo.save(user);
+      }
 
   }
 
